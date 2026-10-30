@@ -175,7 +175,8 @@ def main() -> None:
                 ) as exc:
                     st.error(str(exc))
     with tabs[3]:
-        st.markdown("""### A forecast follows time
+        st.markdown(
+            """### A forecast follows time
 1. Inspect the history and its observation frequency.
 2. Keep the last observations out of training.
 3. Compare a seasonal-naive baseline, exponential smoothing, ARIMA and
@@ -191,7 +192,8 @@ guarantee a better forecast.
 MAE is average absolute error in source units. RMSE penalizes large mistakes
 more strongly. Neither compares scale fairly across unrelated datasets.
 Stock prices need a random-walk baseline and evaluation of costs before any
-trading interpretation; this app makes no trading claim.""")
+trading interpretation; this app makes no trading claim."""
+        )
 
 
 if __name__ == "__main__":

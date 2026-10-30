@@ -18,7 +18,7 @@ def check(url, attempts):
                     raise ValueError("Missing Streamlit HTTP shell")
             print("Streamlit health and HTTP shell passed:", url)
             return
-        except (URLError, TimeoutError, ValueError) as exc:
+        except (OSError, URLError, TimeoutError, ValueError) as exc:
             if attempt + 1 == attempts:
                 raise SystemExit(str(exc)) from exc
             time.sleep(5)
