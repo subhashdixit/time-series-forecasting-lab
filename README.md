@@ -1,5 +1,9 @@
 # Forecasting Lab
 
+**Live application:** [Open Time Series Forecasting Lab](https://subhash-time-series-lab.streamlit.app/) · [Source code](https://github.com/subhashdixit/time-series-forecasting-lab)
+
+![Live Forecasting Lab](docs/images/application.png)
+
 An end-to-end **time-series learning application** built with Streamlit, pandas, NumPy and statsmodels. Explore two measured historical case studies, compare later-observation errors and fit a bounded forecast to your own CSV—including stock-price observations.
 
 The goal is to learn a reliable sequence: inspect history, preserve time order, compare simple and more complex models, test on later observations, and then forecast beyond the known history. A complicated model does not automatically win.
