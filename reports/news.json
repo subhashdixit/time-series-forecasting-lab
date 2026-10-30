@@ -1,0 +1,36 @@
+{
+  "selected_model": "exponential_smoothing",
+  "season": 4,
+  "rows": 16,
+  "split": {
+    "train": 9,
+    "validation": 3,
+    "test": 4
+  },
+  "validation_candidates": {
+    "seasonal_naive": {
+      "mae": 5.0,
+      "rmse": 5.259911279353167
+    },
+    "exponential_smoothing": {
+      "mae": 4.142804201068533,
+      "rmse": 4.597367189747908
+    },
+    "arima": {
+      "mae": 9.328216630444132,
+      "rmse": 9.532681151989587
+    },
+    "sarima": {
+      "mae": 7.227842592695978,
+      "rmse": 8.198330096230295
+    }
+  },
+  "failed_candidates": {},
+  "test": {
+    "mae": 2.8332800168209324,
+    "rmse": 3.4370075171233077
+  },
+  "test_start": "2015-01-01",
+  "last_observation": "2015-10-01",
+  "source_sha256": "d0e6e3d72623c111d208d6d125b99cc593adb887be4f4c6c79fbd455f417a34d"
+}

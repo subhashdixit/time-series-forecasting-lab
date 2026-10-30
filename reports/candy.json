@@ -1,0 +1,36 @@
+{
+  "selected_model": "seasonal_naive",
+  "season": 12,
+  "rows": 548,
+  "split": {
+    "train": 328,
+    "validation": 110,
+    "test": 110
+  },
+  "validation_candidates": {
+    "seasonal_naive": {
+      "mae": 5.293125454545455,
+      "rmse": 7.030633801120248
+    },
+    "exponential_smoothing": {
+      "mae": 9.254275490639971,
+      "rmse": 11.987871818426242
+    },
+    "arima": {
+      "mae": 12.215732008719517,
+      "rmse": 15.03554686078276
+    },
+    "sarima": {
+      "mae": 5.97726285551543,
+      "rmse": 7.492593912939247
+    }
+  },
+  "failed_candidates": {},
+  "test": {
+    "mae": 5.870564545454545,
+    "rmse": 7.505288795091582
+  },
+  "test_start": "2008-07-01",
+  "last_observation": "2017-08-01",
+  "source_sha256": "310335f07908f3291304a11cf139c93a54a0e1ee7128f134e8b231cb496726a2"
+}
