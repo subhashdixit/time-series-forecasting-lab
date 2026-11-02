@@ -223,3 +223,14 @@ A short-series or season-length error means the chosen fit lacks enough history;
 - [Statsmodels time-series models](https://www.statsmodels.org/stable/tsa.html)
 - [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing)
 - [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud)
+
+## Exact local dependency versions
+
+[DEPENDENCIES.md](DEPENDENCIES.md) lists the pinned runtime, development and training environments. `requirements.txt` now explicitly records all external runtime package versions, including transitive dependencies.
+
+```bash
+python3.11 -m venv .venv
+# Activate: source .venv/bin/activate (Windows: .venv\Scripts\activate)
+python -m pip install -r requirements.txt
+python -m pip check
+```

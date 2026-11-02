@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "repository": "time-series-forecasting-lab",
+  "recommended_python": "3.11.11",
+  "resolver": "uv==0.13.6",
+  "files": [
+    {
+      "path": "requirements-dev.in",
+      "sha256": "f9c5dfa95578159677f4df7c664e23a5bae51cf8bd8409e96746a3d3a72cd95e"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "sha256": "d874eb6074f19197c5ecb3a96c12355d5d03ec407a9b47389cad4658d5fca822"
+    },
+    {
+      "path": "requirements.in",
+      "sha256": "c21832f83fb780760f2497615681be2010da4aa8e598d3adb1121bf7e769c999"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "12bddb7045728108f3558bda772c2788e4a6d580a4649884fb61adae01f79fa5"
+    }
+  ]
+}
