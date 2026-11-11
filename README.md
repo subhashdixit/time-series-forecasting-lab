@@ -1,18 +1,20 @@
-# Forecasting Lab
+# Time Series Forecasting Lab
 
-**Live application:** [Open Time Series Forecasting Lab](https://subhash-time-series-lab.streamlit.app/) · [Source code](https://github.com/subhashdixit/time-series-forecasting-lab)
+## 1. Project overview
 
-![Live Forecasting Lab](docs/images/application.png)
+Compare forecasting methods on historical monthly candy production and quarterly news demand, or fit a bounded forecast to an uploaded CSV.
 
-An end-to-end **time-series learning application** built with Streamlit, pandas, NumPy and statsmodels. Explore two measured historical case studies, compare later-observation errors and fit a bounded forecast to your own CSV—including stock-price observations.
+[Live demo](https://subhash-time-series-lab.streamlit.app/) · [Source repository](https://github.com/subhashdixit/time-series-forecasting-lab)
 
-The goal is to learn a reliable sequence: inspect history, preserve time order, compare simple and more complex models, test on later observations, and then forecast beyond the known history. A complicated model does not automatically win.
+![Time Series Forecasting Lab main screen](docs/images/application.png)
 
-> Historical educational examples. Built-in data ends in 2017 for candy and 2015 for quarterly news demand. Forecasts begin after those source cutoffs, not today. No trading recommendation or business-planning accuracy guarantee is implied.
+*Main screen captured from the app running locally.*
 
-[Run locally](#run-locally) · [Use the app](#use-the-application) · [Algorithms](#algorithms-and-their-tradeoffs) · [Results](#measured-results) · [Deployment](#deployment-on-streamlit-community-cloud)
+## 2. Motivation and problem statement
 
-## What the app contains
+A forecast chart alone cannot tell a practitioner whether the model generalizes. Random splits can leak future information, and a seasonal model can appear strong without a seasonal baseline. The lab preserves time order, exposes model comparisons and later-observation errors, and carries that workflow into bounded custom CSV forecasts.
+
+## 3. Solution and scope
 
 | Area | What you can do |
 |---|---|
@@ -25,39 +27,7 @@ The stock-study notebook and PDF are preserved. A verified stock-price CSV is no
 
 Original notebooks and datasets remain in their source folders. Some notebook cells were incomplete or used old APIs; the application uses the new tested modules rather than executing notebook state at startup.
 
-## Architecture
-
-```mermaid
-flowchart LR
-    A[Original source CSVs] --> B[Offline preparation]
-    B --> C[Time-ordered model comparison]
-    C --> D[Measured reports and forecasts]
-    D --> E[Streamlit dashboard]
-    F[User CSV] --> G[Shared validation]
-    G --> H[Explicit bounded fit button]
-    H --> I[Exercise forecast and download]
-```
-
-Default views load precomputed, reproducible reports, so the dashboard does not retrain just because someone opens it. A custom upload runs a bounded fitting exercise only after the visitor selects its button. Domain functions are separate from the Streamlit interface, allowing meaningful tests without clicking through a browser.
-
-## Run locally
-
-Use Python **3.10 or 3.11**; choose 3.11 for Community Cloud. Pinned dependencies are declared in `pyproject.toml` and installed through `requirements.txt`.
-
-```bash
-git clone https://github.com/subhashdixit/time-series-forecasting-lab.git
-cd time-series-forecasting-lab
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements-dev.txt
-python -m pip check
-streamlit run streamlit_app.py
-```
-
-On Windows, use `.venv\Scripts\Activate.ps1`. Open the local URL Streamlit prints, normally [http://localhost:8501](http://localhost:8501). Default reports are committed; source preparation is optional for ordinary app use.
-
-## Use the application
+## 4. Quick start and usage
 
 1. Choose **Candy production** or **Quarterly news demand** in the sidebar.
 2. Inspect the source history and its last observed date.
@@ -83,7 +53,32 @@ Irregular stock-trading dates are interpreted as **ordered observations**, not a
 
 Uploaded data is processed in memory and is not written by the app. Use data you are authorized to analyze. The service does not provide user authentication, durable private storage or a production forecasting SLA.
 
-## Data and units
+## 5. High-level architecture
+
+```mermaid
+flowchart LR
+    A["Historical case studies"] --> B["Offline evaluation artifacts"] --> C["Streamlit dashboard"]
+```
+
+## 6. End-to-end request workflow
+
+```mermaid
+sequenceDiagram
+    actor Visitor
+    participant UI as Application
+    participant Logic as Processing layer
+    Visitor->>UI: Choose a case study or upload a CSV
+    UI->>Logic: Read committed results or fit a bounded model
+    alt Valid input
+        Logic-->>UI: Forecasts, errors, and diagnostics
+        UI-->>Visitor: Render or export the result
+    else Invalid input
+        Logic-->>UI: Input error
+        UI-->>Visitor: Show actionable feedback
+    end
+```
+
+## 7. Data sources, inputs, and outputs
 
 | Source | Observations | Period | Column interpretation |
 |---|---:|---|---|
@@ -93,7 +88,66 @@ Uploaded data is processed in memory and is not written by the app. Use data you
 
 The quarterly source combines year and quarter into a quarter-start date. Original TRP episode data is retained as source material, but is not silently treated as a dated quarterly series. Files do not establish complete upstream collection or licensing provenance; verify rights before redistributing source materials elsewhere.
 
-## Reproduce preparation
+## 8. Data flow and ETL pipeline
+
+```mermaid
+flowchart LR
+    A["Case-study CSV or uploaded series"] --> B["Parse dates and check regularity"] --> C["Split in time order"] --> D["Compare baselines and candidates"] --> E["Report holdout and forecast"]
+```
+
+## 9. Low-level design and interfaces
+
+```mermaid
+flowchart LR
+    A["streamlit_app.py: dashboard and upload"] --> B["core.py: validation, fitting, and metrics"] --> C["reports: historical evaluation artifacts"]
+```
+
+Streamlit renders validated controls and download actions. Shared forecasting code handles data and model operations.
+
+## 10. Concepts and algorithms
+
+| Algorithm | Story | Advantage | Limitation |
+|---|---|---|---|
+| Seasonal naive | Repeat the last observed cycle | Transparent, fast and difficult to beat when seasonality dominates | Cannot adapt a changing trend or new regime |
+| Exponential smoothing | Estimate level, trend and additive seasonality | Useful for smoothly evolving seasonal structure | Trend extrapolation can diverge over long horizons; structural breaks are difficult |
+| ARIMA(1,1,1) | Difference once, then model lagged dynamics and errors | Compact statistical baseline | Fixed order, stationarity assumptions after differencing and no explicit seasonal cycle |
+| SARIMA(1,1,0) × (1,0,0,s) | Add a seasonal lag to differenced dynamics | Models repeated seasonal dependence | More parameters, optimization sensitivity and weak estimates on short histories |
+
+The orders are deliberately fixed, not an exhaustive search. With season 1, the seasonal component is disabled. ARIMA/SARIMA optimizer iterations are bounded; non-convergent fits are excluded and reported. A warning about starting parameters is not automatically the same as failed convergence.
+
+**Why this sequence?** Start with the simplest credible baseline. Add trend/seasonality smoothing when the pattern changes smoothly. Add autoregressive/differencing structure when residual dependence suggests it. Compare held-out errors rather than assuming a newer or more complex model must be better.
+
+A simple analogy: seasonal naive repeats last year's calendar; smoothing revises that calendar gradually; ARIMA models how changes depend on previous changes and surprises; SARIMA adds the repeating seasonal rhythm.
+
+## 11. Technology choices and dependencies
+
+| Technology | Role and rationale |
+| --- | --- |
+| pandas and NumPy | Represent regular time series, build splits, and compute errors. |
+| statsmodels | Fit exponential smoothing, ARIMA, and seasonal ARIMA alongside simple baselines. |
+| Streamlit | Expose the same workflow for historical cases and validated uploads. |
+| pytest, GitHub Actions, and Docker | Check data/model contracts and smoke-test a packaged runtime. |
+
+[Dependency versions and reproducible setup](DEPENDENCIES.md)
+
+## 12. Training, inference, and evaluation
+
+| Case | Rows | Validation-selected model | Test MAE | Test RMSE | Test rows |
+|---|---:|---|---:|---:|---:|
+| candy | 548 | seasonal naive | 5.871 | 7.505 | 110 |
+| news | 16 | exponential smoothing | 2.833 | 3.437 | 4 |
+
+![Candy held-out forecast](docs/images/candy-evaluation.png)
+
+![Quarterly-demand held-out forecast](docs/images/news-evaluation.png)
+
+Candy's seasonal-naive validation MAE is 5.293, compared with 9.254 for smoothing, 12.216 for ARIMA and 5.977 for SARIMA. The simplest candidate wins this particular comparison. Quarterly demand selects smoothing by validation MAE 4.143, but its final test contains only four observations; the result is not robust evidence for planning.
+
+**MAE** averages absolute errors in source units. **RMSE** squares errors before averaging and taking a square root, so large misses count more heavily. If errors are 10 and 20 units, MAE is 15 and RMSE is about 15.81. Neither permits a fair direct comparison between unrelated source scales. MAPE is not included because percentage errors become unstable near zero and need a separate suitability decision.
+
+No calibrated prediction intervals are claimed. Forecasts are not silently clipped to positive values; statistical models can produce implausible values, which is a limitation to inspect rather than conceal. Long horizons on a short series are especially unreliable.
+
+### Reproduce offline preparation
 
 ```bash
 python scripts/prepare.py
@@ -119,39 +173,7 @@ The exact counts are **328/110/110** for candy and **9/3/4** for quarterly deman
 
 The test is a single historical cutoff, not rolling-origin cross-validation or independent future evidence. Repeatedly modifying settings after viewing test errors would reuse the test and weaken that claim. For real forecasting research, add rolling-origin evaluations and fresh later periods.
 
-## Algorithms and their tradeoffs
-
-| Algorithm | Story | Advantage | Limitation |
-|---|---|---|---|
-| Seasonal naive | Repeat the last observed cycle | Transparent, fast and difficult to beat when seasonality dominates | Cannot adapt a changing trend or new regime |
-| Exponential smoothing | Estimate level, trend and additive seasonality | Useful for smoothly evolving seasonal structure | Trend extrapolation can diverge over long horizons; structural breaks are difficult |
-| ARIMA(1,1,1) | Difference once, then model lagged dynamics and errors | Compact statistical baseline | Fixed order, stationarity assumptions after differencing and no explicit seasonal cycle |
-| SARIMA(1,1,0) × (1,0,0,s) | Add a seasonal lag to differenced dynamics | Models repeated seasonal dependence | More parameters, optimization sensitivity and weak estimates on short histories |
-
-The orders are deliberately fixed, not an exhaustive search. With season 1, the seasonal component is disabled. ARIMA/SARIMA optimizer iterations are bounded; non-convergent fits are excluded and reported. A warning about starting parameters is not automatically the same as failed convergence.
-
-**Why this sequence?** Start with the simplest credible baseline. Add trend/seasonality smoothing when the pattern changes smoothly. Add autoregressive/differencing structure when residual dependence suggests it. Compare held-out errors rather than assuming a newer or more complex model must be better.
-
-A simple analogy: seasonal naive repeats last year's calendar; smoothing revises that calendar gradually; ARIMA models how changes depend on previous changes and surprises; SARIMA adds the repeating seasonal rhythm.
-
-## Measured results
-
-| Case | Rows | Validation-selected model | Test MAE | Test RMSE | Test rows |
-|---|---:|---|---:|---:|---:|
-| candy | 548 | seasonal naive | 5.871 | 7.505 | 110 |
-| news | 16 | exponential smoothing | 2.833 | 3.437 | 4 |
-
-![Candy held-out forecast](docs/images/candy-evaluation.png)
-
-![Quarterly-demand held-out forecast](docs/images/news-evaluation.png)
-
-Candy's seasonal-naive validation MAE is 5.293, compared with 9.254 for smoothing, 12.216 for ARIMA and 5.977 for SARIMA. The simplest candidate wins this particular comparison. Quarterly demand selects smoothing by validation MAE 4.143, but its final test contains only four observations; the result is not robust evidence for planning.
-
-**MAE** averages absolute errors in source units. **RMSE** squares errors before averaging and taking a square root, so large misses count more heavily. If errors are 10 and 20 units, MAE is 15 and RMSE is about 15.81. Neither permits a fair direct comparison between unrelated source scales. MAPE is not included because percentage errors become unstable near zero and need a separate suitability decision.
-
-No calibrated prediction intervals are claimed. Forecasts are not silently clipped to positive values; statistical models can produce implausible values, which is a limitation to inspect rather than conceal. Long horizons on a short series are especially unreliable.
-
-## Tests and coding standards
+### Verification
 
 ```bash
 python -m black --check src tests scripts streamlit_app.py
@@ -164,7 +186,50 @@ Tests check input bounds, dates, duplicates, missing/non-finite values, seasonal
 
 The code uses focused functions rather than forcing a stateful class around stateless calculations. Streamlit handles presentation; `forecasting.core` owns validation, fitting and evaluation. File preparation is a separate script. This separation is more useful than a large inheritance hierarchy for this application.
 
-## Deployment on Streamlit Community Cloud
+## 13. Limitations and data handling
+
+The built-in series end in 2017 and 2015. Their forecasts start after those historical cutoffs. Uploaded results depend on frequency, history length, data quality, and the chosen model. Stock-price inputs are educational and do not support a trading recommendation.
+
+## 14. Installation and local setup
+
+Use Python **3.10 or 3.11**; choose 3.11 for Community Cloud. Pinned dependencies are declared in `pyproject.toml` and installed through `requirements.txt`.
+
+```bash
+git clone https://github.com/subhashdixit/time-series-forecasting-lab.git
+cd time-series-forecasting-lab
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements-dev.txt
+python -m pip check
+streamlit run streamlit_app.py
+```
+
+On Windows, use `.venv\Scripts\Activate.ps1`. Open the local URL Streamlit prints, normally [http://localhost:8501](http://localhost:8501). Default reports are committed; source preparation is optional for ordinary app use.
+
+## 15. Repository structure
+
+```text
+src/forecasting/core.py  validation, algorithms, errors and chronological selection
+streamlit_app.py        dashboard and bounded CSV exercise
+scripts/prepare.py     source-to-report offline preparation
+scripts/plot_results.py reproducible documentation figures
+reports/               measured JSON reports and forecast/history CSVs
+tests/                 domain and AppTest checks
+.streamlit/            theme and upload limits
+.github/workflows/     CI; platform manages deployment separately
+Dockerfile             optional portable runtime
+Candy_Production/      original source CSV and notebook
+NEWS_Demand_Dataset/   original quarterly/TRP data and notebook
+Happiest_Mind_Stock_Price_Prediction/ original stock study
+```
+
+## 16. Deployment and operations
+
+```mermaid
+flowchart LR
+    A["GitHub main"] --> B["Streamlit Community Cloud"] --> C["Load versioned artifacts"] --> D["Serve dashboard"]
+```
 
 Hosting provides the running process and public URL. Deployment installs a specific repository revision into that environment. Community Cloud connects to GitHub, installs the project and runs the entry file.
 
@@ -182,55 +247,20 @@ GitHub Actions checks Python 3.10/3.11, formatting, Pylint, tests and the contai
 
 Benefits are fast publication and little server configuration. Tradeoffs include platform limits, less server control and reliance on the provider's GitHub integration. A failed dependency install is a deployment problem; a healthy app with weak forecasts is a modeling problem. Monitor them separately.
 
-## Optional Docker execution
-
-```bash
-docker build -t forecasting-lab:local .
-docker run --rm -p 8501:8501 forecasting-lab:local
-```
-
-The image packages Python, dependencies, source and prepared reports. It runs as a non-root user. Docker makes packaging portable but adds image/build maintenance; Community Cloud deployment uses its native Python environment instead.
-
-## Versioning and rollback
+### Versioning and rollback
 
 Git identifies code and prepared artifacts. Each JSON report records its source hash and evaluation. Re-running preparation changes the forecast release; opening the dashboard does not. Review model/code/report changes together and retain the previous revision.
 
 Rollback means reverting the problematic commit through a reviewed change and allowing the platform to publish the restored branch. Merely restarting a broken revision does not restore an earlier model. If the test cutoff influences repeated tuning, reserve new later data before claiming an untouched evaluation.
 
-## Repository map
+## 17. License, credits, and support
 
-```text
-src/forecasting/core.py  validation, algorithms, errors and chronological selection
-streamlit_app.py        dashboard and bounded CSV exercise
-scripts/prepare.py     source-to-report offline preparation
-scripts/plot_results.py reproducible documentation figures
-reports/               measured JSON reports and forecast/history CSVs
-tests/                 domain and AppTest checks
-.streamlit/            theme and upload limits
-.github/workflows/     CI; platform manages deployment separately
-Dockerfile             optional portable runtime
-Candy_Production/      original source CSV and notebook
-NEWS_Demand_Dataset/   original quarterly/TRP data and notebook
-Happiest_Mind_Stock_Price_Prediction/ original stock study
-```
+Project by **Subhash Dixit**. The repository has no standalone code license file. Dataset and dependency terms are described separately where applicable. Report bugs or documentation issues with synthetic reproduction inputs.
 
-## Troubleshooting
+[GitHub Issues](https://github.com/subhashdixit/time-series-forecasting-lab/issues)
 
-A short-series or season-length error means the chosen fit lacks enough history; reduce season length or supply more observations. A non-convergence error is a failed fit, not a valid forecast. Correct dates and missing values explicitly rather than silently interpolating test targets. If Cloud imports fail, confirm Python 3.11 and that `requirements.txt` installs this package from the repository root.
-
-## References
+### References
 
 - [Statsmodels time-series models](https://www.statsmodels.org/stable/tsa.html)
 - [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing)
 - [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud)
-
-## Exact local dependency versions
-
-[DEPENDENCIES.md](DEPENDENCIES.md) lists the pinned runtime, development and training environments. `requirements.txt` now explicitly records all external runtime package versions, including transitive dependencies.
-
-```bash
-python3.11 -m venv .venv
-# Activate: source .venv/bin/activate (Windows: .venv\Scripts\activate)
-python -m pip install -r requirements.txt
-python -m pip check
-```
