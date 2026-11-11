@@ -2,7 +2,7 @@
 
 ## 1. Project overview
 
-Compare forecasting methods on historical monthly candy production and quarterly news demand, or fit a bounded forecast to an uploaded CSV.
+Forecast future values from historical data. The repository starts with two cases: monthly sugar and confectionery production and quarterly news demand. The Streamlit lab brings that workflow to a browser and lets users apply it to their own dated series, such as monthly sales or weekly demand.
 
 [Live demo](https://subhash-time-series-lab.streamlit.app/) · [Source repository](https://github.com/subhashdixit/time-series-forecasting-lab)
 
@@ -12,7 +12,17 @@ Compare forecasting methods on historical monthly candy production and quarterly
 
 ## 2. Motivation and problem statement
 
-A forecast chart alone cannot tell a practitioner whether the model generalizes. Random splits can leak future information, and a seasonal model can appear strong without a seasonal baseline. The lab preserves time order, exposes model comparisons and later-observation errors, and carries that workflow into bounded custom CSV forecasts.
+### Objective
+
+Use past observations to estimate the next periods of production, demand, or sales, and measure how much the forecast misses on later observations. The built-in candy case forecasts the monthly U.S. sugar and confectionery production index. The quarterly case forecasts the supplied news-demand series.
+
+### Problem statement
+
+Given a dated sequence of observations, forecast a specified number of future periods at the same frequency. The model has to account for patterns such as seasonality, and its evaluation has to reflect the information available at the forecast date. The candy dataset measures industrial production. For a sales forecast, supply a CSV with dates and observed sales values. [Federal Reserve production series](https://fred.stlouisfed.org/series/IPG3113N)
+
+### Motivation
+
+Production and demand forecasts can help people anticipate busy periods and plan capacity or inventory. The project compares simple seasonal baselines with smoothing, ARIMA, and SARIMA to see whether added complexity improves performance on later data. The app lets users explore both case studies, inspect errors, and apply the same workflow to an uploaded series.
 
 ## 3. Solution and scope
 
